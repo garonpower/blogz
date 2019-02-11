@@ -2,11 +2,11 @@ from flask import Flask, request, redirect, render_template, session, flash
 from flask_sqlalchemy import SQLAlchemy
 
 app = Flask(__name__)
-app.secret_key = b'_5#y2L"F4Q8z\n\xec]/'
 app.config['DEBUG'] = True
 app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql+pymysql://blogz:R2ykpwie0McOfayP@localhost:3306/blogz'
 app.config['SQLALCHEMY_ECHO'] = True
 db = SQLAlchemy(app)
+app.secret_key = 'y337kGcys&zP3B'
 
 
 class Blog(db.Model):
@@ -42,7 +42,7 @@ def user_input_verification(user_input):
 @app.before_request
 def require_login():
     allowed_routes = ['login', 'signup', 'blog', 'index']
-    if request.endpoint not in allowed_routes and 'email' not in session:
+    if request.endpoint not in allowed_routes and 'username' not in session:
         return redirect('/login')
 
 @app.route('/login', methods=['POST', 'GET'])
@@ -161,7 +161,7 @@ def add_blog_entry():
             content_error = "Please fill in the body"
         
         if not title_error and not content_error:
-            new_post = Blog(post_title,post_content)
+            new_post = Blog(post_title,post_content, owner)
             db.session.add(new_post)
             db.session.commit()
             blog = new_post.id
@@ -176,6 +176,7 @@ def add_blog_entry():
 
 @app.route('/blog_post', methods=['POST', 'GET'])
 def blog_post():
+
     if request.method == 'GET':
         blog_id = request.args.get('id')
         blog = Blog.query.get(blog_id)
