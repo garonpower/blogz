@@ -33,6 +33,18 @@ class User(db.Model):
         self.username = username
         self.password = password
 
+def user_input_verification(user_input):
+    if len(user_input) > 0:
+        for space in user_input:
+            if space == ' ':
+                return False
+
+@app.before_request
+def require_login():
+    allowed_routes = ['login', 'signup', 'blog', 'index']
+    if request.endpoint not in allowed_routes and 'email' not in session:
+        return redirect('/login')
+
 @app.route('/login', methods=['POST', 'GET'])
 def login():
     if request.method == 'POST':
@@ -41,7 +53,7 @@ def login():
         user = User.query.filter_by(username=username).first()
         if user and user.password == password:
             session['username'] = username
-            flash("Logged in")
+            flash("You have successfully logged in!", 'notice')
             return redirect ('/newpost')
         if user and user.password != password:
             flash('Invalid password', 'error')
@@ -57,31 +69,53 @@ def signup():
         password = request.form['password']
         verify = request.form['verify']
 
-        # TODO - validate user's data. If any field is blank "Error = One or more fields are invalid"
-        # if passwords don't match error.
-        # error if password or username is less than 3 characters long. Invalid username or invalid password
-
         existing_user = User.query.filter_by(username=username).first()
-        if not existing_user:
-            new_user = User(username, password)
-            db.session.add(new_user)
-            db.session.commit()
-            session['username'] = username
-            return redirect('/newpost')
+
+        if existing_user:
+            flash('Username already exists', 'error')
+
+        if (not username) or (username.strip() == ""):
+            flash('Please input a Username (greater than 3 characters)', 'error')
+        
+        if (not password) or (password.strip() == ""):
+            flash('Please input a password (greater than 3 characters)', 'error')
+        
+        if (not verify) or (verify.strip() == ""):
+            flash('Please input a matching password', 'error')
+
+        if user_input_verification(username) == False:
+            flash('Spaces are not allowed!', 'error')
+            return render_template('signup.html')
+
+        if user_input_verification(password) == False:
+            flash('Spaces are not allowed!', 'error')
+            return render_template('signup.html')
+       
+        if password != verify:
+            flash("Passwords don't match (must be longer than 3 characters)", 'error')
+        
+        if len(username) and len(password) < 3:
+            flash('Username and password must be greater than 3 characters', 'error')
 
         else:
-            # TODO - user better response messaging - Make flash message
-            return '<h1>Username already exists</h1>'
+            if not existing_user:
+                new_user = User(username, password)
+                db.session.add(new_user)
+                db.session.commit()
+                session['username'] = username
+                return redirect('/newpost')
 
     return render_template('signup.html')
 
-# @app.route('/logout', methods=['POST', 'GET'])
-
 # @app.route('/index', methods=['POST', 'GET'])
 
+@app.route('/logout')
+def logout():   
+    del session['username']
+    return redirect('/blog')
 
 @app.route('/blog', methods=['GET'])
-def index(): 
+def blog(): 
 
     posts = Blog.query.filter_by(posted=False).all()
     posted_blogs = Blog.query.filter_by(posted=True).all()
