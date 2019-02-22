@@ -16,12 +16,14 @@ class Blog(db.Model):
     content = db.Column(db.String(1000))
     posted = db.Column(db.Boolean)
     owner_id = db.Column(db.Integer, db.ForeignKey('user.id'))
+    author_username = db.Column(db.String(120))
 
-    def __init__(self, title, content, owner):
+    def __init__(self, title, content, owner, author_username):
         self.title = title
         self.content = content
         self.posted = False
-        self.owner = owner
+        self.owner_id = owner
+        self.author_username = author_username
 
 class User(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -38,6 +40,13 @@ def user_input_verification(user_input):
         for space in user_input:
             if space == ' ':
                 return False
+
+@app.route('/', methods=['POST', 'GET'])
+def index():
+
+    users = User.query.order_by(User.id.asc()).all()
+
+    return render_template('index.html',  users=users, title="Home")
 
 @app.before_request
 def require_login():
@@ -76,9 +85,11 @@ def signup():
 
         if (not username) or (username.strip() == ""):
             flash('Please input a Username (greater than 3 characters)', 'error')
+            return render_template('signup.html')
         
         if (not password) or (password.strip() == ""):
             flash('Please input a password (greater than 3 characters)', 'error')
+            return render_template('signup.html')
         
         if (not verify) or (verify.strip() == ""):
             flash('Please input a matching password', 'error')
@@ -107,8 +118,6 @@ def signup():
 
     return render_template('signup.html')
 
-# @app.route('/index', methods=['POST', 'GET'])
-
 @app.route('/logout')
 def logout():   
     del session['username']
@@ -120,8 +129,9 @@ def blog():
     posts = Blog.query.filter_by(posted=False).all()
     posted_blogs = Blog.query.filter_by(posted=True).all()
 
-    return render_template('blog.html', title = 'Build A Blog',
-    posts=posts, posted_blogs=posted_blogs)
+    return render_template('blog.html', title = 'All Posts',
+    posts=posts, 
+    posted_blogs=posted_blogs,)
 
 @app.route('/completed_posts', methods=['POST'])
 def completed_posts():
@@ -150,6 +160,7 @@ def add_blog_entry():
     if request.method == 'POST':
         post_title = request.form['title']
         post_content = request.form['content']
+        current_author = User.query.filter_by(username = session['username']).first()
 
         title_error = ''
         content_error = ''
@@ -161,7 +172,7 @@ def add_blog_entry():
             content_error = "Please fill in the body"
         
         if not title_error and not content_error:
-            new_post = Blog(post_title,post_content, owner)
+            new_post = Blog(post_title,post_content, owner, current_author.username)
             db.session.add(new_post)
             db.session.commit()
             blog = new_post.id
@@ -177,12 +188,21 @@ def add_blog_entry():
 @app.route('/blog_post', methods=['POST', 'GET'])
 def blog_post():
 
-    if request.method == 'GET':
-        blog_id = request.args.get('id')
-        blog = Blog.query.get(blog_id)
+    blog_id = request.args.get('id')
+    blog = Blog.query.get(blog_id)
 
-        return render_template('blog_post.html',  blog=blog)
+    return render_template('blog_post.html',  blog=blog)
 
+@app.route('/singleUser', methods=['POST', 'GET'])
+def singleUser():
+    
+    blog_id = request.args.get('id')
+    author_id = request.args.get('userId')
+    blogs = Blog.query.all()
+    blog = Blog.query.filter_by(id = blog_id).first()
+    author = Blog.query.filter_by(id = blog.owner)
+
+    return render_template('singleUser.html', blog=blog, owner=author)
 
 if __name__ == '__main__':
     app.run()

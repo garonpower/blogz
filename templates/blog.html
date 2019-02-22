@@ -10,14 +10,21 @@
 
         
         {% for post in posts %}
+           
             <a href="/blog_post?id={{post.id}}"><h2>{{post.title}}</h2></a>
-            {{post.content}}<br><br>
-            <form method="POST" action="/completed_posts">
-                <input type="hidden" name="title-id" value="{{post.id}}" />
-            </form>  
+            {{post.content}}
+            
+            
+            <p>written by
+            
+            <a href="/singleUser?userId={{post.owner_id}}">{{post.author_username}}</a>
+        
+            </p><br><br>
+             
             <hr />
+            
         {% endfor %}
-
+            
        
     {% endif %}
 
