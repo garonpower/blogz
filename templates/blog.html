@@ -11,13 +11,13 @@
         
         {% for post in posts %}
            
-            <a href="/blog_post?id={{post.id}}"><h2>{{post.title}}</h2></a>
+            <a href="/blog?id={{post.id}}"><h2>{{post.title}}</h2></a>
             {{post.content}}
             
             
             <p>written by
             
-            <a href="/singleUser?userId={{post.owner_id}}">{{post.author_username}}</a>
+            <a href="/blog?userId={{post.owner_id}}">{{post.author_username}}</a>
         
             </p><br><br>
              

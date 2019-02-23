@@ -4,5 +4,12 @@
 
 <h1><strong>{{blog.title}}</strong></h1>
 <p>{{blog.content}}</p>
+<p>written by
+            
+    <a href="/blog?userId={{user_id}}">{{blog.author_username}}</a>
+
+    <br>
+     
+    <hr />
         
 {% endblock %}

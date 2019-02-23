@@ -3,21 +3,16 @@
 {% block content %}
 
 <h1><strong>User Posts</strong></h1>
-
-    {% if posts|length == 0 %}
-    <p>No blog posts yet</p>
-    {% else %}
-
         
-        {% for post in posts %}
+        {% for user in users %}
         
-            <a href="/blog_post?id={{post.id}}"><h2>{{post.title}}</h2></a>
-            {{post.content}}
+            <a href="/blog?id={{user.id}}"><h2>{{user.title}}</h2></a>
+            {{user.content}}
             
             
             <p>written by
             
-            <a href="/singleUser?userId={{post.owner_id}}">{{post.author_username}}</a>
+            <a href="/blog?userId={{user.owner_id}}">{{user.author_username}}</a>
         
             </p><br><br>
 
@@ -25,9 +20,5 @@
             
         {% endfor %}
             
-   
-{% endif %}
-
-
        
 {% endblock %}

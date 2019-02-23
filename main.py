@@ -123,11 +123,22 @@ def logout():
     del session['username']
     return redirect('/blog')
 
-@app.route('/blog', methods=['GET'])
+@app.route('/blog', methods=['POST', 'GET'])
 def blog(): 
+
+    blog_id = request.args.get('id')
+    user_id = request.args.get('userId')
 
     posts = Blog.query.filter_by(posted=False).all()
     posted_blogs = Blog.query.filter_by(posted=True).all()
+
+    if blog_id:
+        blog = Blog.query.get(blog_id)
+        return render_template('blog_post.html',  blog=blog)
+
+    if user_id:
+        users = Blog.query.filter_by(owner_id=user_id).all()
+        return render_template('singleUser.html', users=users)
 
     return render_template('blog.html', title = 'All Posts',
     posts=posts, 
@@ -184,25 +195,6 @@ def add_blog_entry():
                 post_title=post_title,
                 post_content=post_content)
 
-
-@app.route('/blog_post', methods=['POST', 'GET'])
-def blog_post():
-
-    blog_id = request.args.get('id')
-    blog = Blog.query.get(blog_id)
-
-    return render_template('blog_post.html',  blog=blog)
-
-@app.route('/singleUser', methods=['POST', 'GET'])
-def singleUser():
-    
-    blog_id = request.args.get('id')
-    author_id = request.args.get('userId')
-    blogs = Blog.query.all()
-    blog = Blog.query.filter_by(id = blog_id).first()
-    author = Blog.query.filter_by(id = blog.owner)
-
-    return render_template('singleUser.html', blog=blog, owner=author)
 
 if __name__ == '__main__':
     app.run()
