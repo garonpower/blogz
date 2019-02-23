@@ -195,6 +195,5 @@ def add_blog_entry():
                 post_title=post_title,
                 post_content=post_content)
 
-
 if __name__ == '__main__':
     app.run()
